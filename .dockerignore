@@ -1,0 +1,8 @@
+.git
+.wrangler
+node_modules
+vendor
+worker
+scripts
+*.pdf
+*.md

@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lrtc-pdf",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-09-27",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "rules": [
+    { "type": "Text", "globs": ["**/*.html"] }
+  ],
+  "containers": [
+    {
+      "class_name": "PdfContainer",
+      "image": "./Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 3
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "class_name": "PdfContainer", "name": "PDF_CONTAINER" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["PdfContainer"] }
+  ],
+  // Replace the KV id after `wrangler kv namespace create TOKENS`.
+  // Create the bucket with `wrangler r2 bucket create lrtc-pdf`.
+  "kv_namespaces": [
+    { "binding": "TOKENS", "id": "9e4d76b81b8048b2aedb2236f7d6db58" }
+  ],
+  "r2_buckets": [
+    { "binding": "TEMPLATES", "bucket_name": "lrtc-pdf" }
+  ]
+}

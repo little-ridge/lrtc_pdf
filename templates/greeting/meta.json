@@ -1,0 +1,16 @@
+{
+  "paper": "letter",
+  "default_font": "dejavusans",
+  "fields": {
+    "name": { "type": "string", "required": true },
+    "title_text": { "type": "string", "required": true },
+    "body": { "type": "paragraphs", "required": false },
+    "items": { "type": "list", "required": false }
+  },
+  "sample": {
+    "name": "Ada",
+    "title_text": "Greeting",
+    "body": "Line one\nLine two",
+    "items": [{ "name": "First" }]
+  }
+}
