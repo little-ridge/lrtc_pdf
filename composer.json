@@ -1,0 +1,14 @@
+{
+  "name": "little-ridge/lrtc_pdf",
+  "description": "A PDF API to be deployed in a Cloudflare Container",
+  "type": "project",
+  "require": {
+    "mpdf/mpdf": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "PdfApi\\": "src/"
+    }
+  }
+}
+
