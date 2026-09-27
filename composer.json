@@ -1,6 +1,6 @@
 {
   "name": "little-ridge/lrtc_pdf",
-  "description": "A PDF API to be deployed in a Cloudflare Container",
+  "description": "A PDF API for an always-on Incus container",
   "type": "project",
   "require": {
     "php": "^8.1",

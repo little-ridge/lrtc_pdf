@@ -1,0 +1,20 @@
+[Unit]
+Description=lrtc_pdf
+After=network.target
+
+[Service]
+User=lrtc-pdf
+Group=lrtc-pdf
+Environment=PDF_DATA_DIR=/var/lib/lrtc-pdf
+Environment=TOKENS_FILE=/etc/lrtc-pdf/tokens.json
+WorkingDirectory=/opt/lrtc-pdf
+ExecStart=/usr/bin/php -S 0.0.0.0:8080 -t /opt/lrtc-pdf/public /opt/lrtc-pdf/public/index.php
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/lrtc-pdf
+
+[Install]
+WantedBy=multi-user.target

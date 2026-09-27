@@ -2,70 +2,76 @@
 
 declare(strict_types=1);
 
-use PdfApi\DocumentRequest;
+use PdfApi\Api;
 use PdfApi\HttpException;
 use PdfApi\Presets;
-use PdfApi\Renderer;
-use PdfApi\Seeds;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
-set_exception_handler(static function (Throwable $e): void {
+$requestId = requestId();
+header('X-Request-Id: ' . $requestId);
+header('Cache-Control: no-store');
+
+set_exception_handler(static function (Throwable $e) use ($requestId): void {
     if ($e instanceof HttpException) {
-        respondJson($e->toArray(), $e->status);
+        sendException($e, $requestId);
         return;
     }
     error_log($e::class . ': ' . $e->getMessage());
     respondJson([
         'error' => 'internal',
         'message' => 'Internal error',
+        'request_id' => $requestId,
         'details' => null,
     ], 500);
 });
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-if (!is_string($path)) {
+if (!is_string($path) || $path === '') {
     $path = '/';
 }
-
-if ($method === 'GET' && $path === '/health') {
-    respondJson(['ok' => true], 200);
+if (strlen($path) > 1 && str_ends_with($path, '/')) {
+    $path = substr($path, 0, -1);
 }
 
-if ($method === 'GET' && $path === '/seeds') {
-    respondJson(['templates' => Seeds::summaries()], 200);
-}
-
-if ($method === 'GET' && preg_match('#^/seeds/([a-z0-9][a-z0-9-]{0,63})$#', $path, $matches) === 1) {
-    respondJson(Seeds::document($matches[1]), 200);
-}
-
-if ($method === 'POST' && ($path === '/render' || $path === '/expand')) {
-    $request = DocumentRequest::fromArray(readJsonBody());
-    if ($path === '/expand') {
-        respondJson($request->expand(), 200);
+try {
+    if ($method === 'GET' && $path === '/health') {
+        respondJson(['ok' => true], 200);
     }
-    $rendered = Renderer::render($request);
-    http_response_code(200);
-    header('Content-Type: application/pdf');
-    header('X-Pdf-Pages: ' . $rendered['pages']);
-    header('X-Pdf-Bytes: ' . $rendered['bytes']);
-    header('Cache-Control: no-store');
-    echo $rendered['pdf'];
-    exit;
+    if (!str_starts_with($path, '/v1/')) {
+        throw new HttpException(404, 'not_found', 'Not found');
+    }
+    $raw = null;
+    if ($method === 'POST' || $method === 'PUT') {
+        $raw = readRawBody();
+    }
+    $response = Api::fromEnvironment()->dispatch(
+        $method,
+        $path,
+        $raw,
+        $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null,
+    );
+    foreach ($response->headers as $name => $value) {
+        header($name . ': ' . $value);
+    }
+    if ($response->pdf !== null) {
+        http_response_code($response->status);
+        if (!isset($response->headers['Content-Type'])) {
+            header('Content-Type: application/pdf');
+        }
+        echo $response->pdf;
+        exit;
+    }
+    respondJson($response->json ?? [], $response->status);
+} catch (HttpException $e) {
+    sendException($e, $requestId);
 }
 
-respondJson([
-    'error' => 'not_found',
-    'message' => 'Not found',
-    'details' => null,
-], 404);
-
-function readJsonBody(): mixed
+function readRawBody(): string
 {
     $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
     if ($length > Presets::maxBodyBytes()) {
@@ -79,14 +85,21 @@ function readJsonBody(): mixed
             'max_bytes' => Presets::maxBodyBytes(),
         ]);
     }
-    if (trim($raw) === '') {
-        throw new HttpException(400, 'invalid_json', 'Request body must be JSON');
+
+    return $raw;
+}
+
+function sendException(HttpException $e, string $requestId): never
+{
+    foreach ($e->headers as $name => $value) {
+        header($name . ': ' . $value);
     }
-    try {
-        return json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
-    } catch (JsonException) {
-        throw new HttpException(400, 'invalid_json', 'Request body must be JSON');
-    }
+    respondJson([
+        'error' => $e->error,
+        'message' => $e->getMessage(),
+        'request_id' => $requestId,
+        'details' => $e->details,
+    ], $e->status);
 }
 
 /**
@@ -98,4 +111,14 @@ function respondJson(array $payload, int $status): never
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     exit;
+}
+
+function requestId(): string
+{
+    $bytes = random_bytes(16);
+    $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+    $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+    $hex = bin2hex($bytes);
+
+    return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-' . substr($hex, 12, 4) . '-' . substr($hex, 16, 4) . '-' . substr($hex, 20);
 }

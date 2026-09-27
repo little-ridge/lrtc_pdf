@@ -50,6 +50,49 @@ final class Fields
         }
     }
 
+    /**
+     * @return array<string, array{type: string, required: bool}>|null
+     */
+    public static function manifest(mixed $value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+        if (!is_array($value)) {
+            throw new HttpException(400, 'invalid_template', 'Field manifest is malformed');
+        }
+
+        $manifest = [];
+        foreach ($value as $name => $spec) {
+            if (!is_string($name) || preg_match('/^[A-Za-z0-9_]{1,64}$/', $name) !== 1 || !is_array($spec)) {
+                throw new HttpException(400, 'invalid_template', 'Field manifest is malformed');
+            }
+            $extra = array_diff(array_keys($spec), ['type', 'required']);
+            if ($extra !== []) {
+                throw new HttpException(400, 'invalid_template', 'Field manifest is malformed', [
+                    'field' => $name,
+                ]);
+            }
+            $type = $spec['type'] ?? null;
+            if (!is_string($type) || !in_array($type, ['string', 'html', 'paragraphs', 'list'], true)) {
+                throw new HttpException(400, 'invalid_template', 'Field manifest is malformed', [
+                    'field' => $name,
+                ]);
+            }
+            if (isset($spec['required']) && !is_bool($spec['required'])) {
+                throw new HttpException(400, 'invalid_template', 'Field manifest is malformed', [
+                    'field' => $name,
+                ]);
+            }
+            $manifest[$name] = [
+                'type' => $type,
+                'required' => ($spec['required'] ?? false) === true,
+            ];
+        }
+
+        return $manifest;
+    }
+
     public static function typeError(string $type, mixed $value): ?string
     {
         return match ($type) {

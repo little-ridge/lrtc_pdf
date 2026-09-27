@@ -25,6 +25,37 @@ function check(bool $ok, string $message): void
     fwrite(STDERR, "FAIL {$message}\n");
 }
 
+/**
+ * @param array<string, array<string, mixed>> $records
+ */
+function writeTokens(string $path, array $records, int $mode = 0600): void
+{
+    $directory = dirname($path);
+    if (!is_dir($directory)) {
+        mkdir($directory, 0700, true);
+    }
+    file_put_contents($path, json_encode($records, JSON_THROW_ON_ERROR));
+    chmod($path, $mode);
+}
+
+function removeTree(string $path): void
+{
+    if (!file_exists($path)) {
+        return;
+    }
+    if (!is_dir($path)) {
+        unlink($path);
+        return;
+    }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        removeTree($path . '/' . $entry);
+    }
+    rmdir($path);
+}
+
 $letter = Renderer::config('letter', 'dejavusans');
 check($letter['format'] === 'Letter', 'letter format');
 check($letter['margin_left'] === 15 && $letter['margin_right'] === 15, 'letter side margins');
@@ -127,6 +158,112 @@ check($rendered['pages'] >= 1, 'page count is present');
 check($rendered['bytes'] === strlen($rendered['pdf']), 'byte count matches');
 check(is_file(Presets::emojiPath()), 'emoji font file is present');
 check(isset($letter['fontdata']['emoji']), 'emoji family is registered');
+
+$dataDir = sys_get_temp_dir() . '/lrtc-pdf-fixture-' . bin2hex(random_bytes(4));
+$token = 'test-token';
+$tokenFile = $dataDir . '/tokens.json';
+writeTokens($tokenFile, [
+    hash('sha256', $token) => [
+        'name' => 'Fixture',
+        'owner' => 'fixture',
+        'scopes' => ['render', 'templates:write'],
+    ],
+], 0644);
+$exposed = new PdfApi\Api(
+    new PdfApi\Tokens(new PdfApi\TokenFile($tokenFile)),
+    new PdfApi\RateLimiter($dataDir . '/rates'),
+    new PdfApi\TemplateLibrary($dataDir),
+);
+try {
+    $exposed->dispatch('GET', '/v1/whoami', null, 'Bearer ' . $token);
+    check(false, 'world-readable token file is refused');
+} catch (HttpException $e) {
+    check($e->status === 500 && $e->error === 'tokens_exposed', 'world-readable token file is refused');
+}
+chmod($tokenFile, 0600);
+$api = new PdfApi\Api(
+    new PdfApi\Tokens(new PdfApi\TokenFile($tokenFile)),
+    new PdfApi\RateLimiter($dataDir . '/rates'),
+    new PdfApi\TemplateLibrary($dataDir),
+);
+$auth = 'Bearer ' . $token;
+$who = $api->dispatch('GET', '/v1/whoami', null, $auth);
+check($who->status === 200 && ($who->json['owner'] ?? null) === 'fixture', 'whoami reads the token record');
+try {
+    $api->dispatch('GET', '/v1/whoami', null, null);
+    check(false, 'missing bearer is unauthorized');
+} catch (HttpException $e) {
+    check($e->status === 401 && $e->error === 'unauthorized', 'missing bearer is unauthorized');
+}
+try {
+    $api->dispatch('GET', '/v1/whoami', null, 'Bearer someone-else');
+    check(false, 'unknown token is unauthorized');
+} catch (HttpException $e) {
+    check($e->status === 401 && $e->error === 'unauthorized', 'unknown token is unauthorized');
+}
+$expanded = $api->dispatch('POST', '/v1/expand', json_encode([
+    'template' => 'greeting',
+    'data' => [
+        'name' => 'Ada',
+        'title_text' => 'Hi',
+        'body' => "One\nTwo",
+    ],
+], JSON_THROW_ON_ERROR), $auth);
+check(
+    is_array($expanded->json) && is_string($expanded->json['html'] ?? null) && str_contains($expanded->json['html'], 'Hello Ada'),
+    'expand fills the seed template',
+);
+try {
+    $api->dispatch('POST', '/v1/expand', json_encode([
+        'html' => '<img src="file:///etc/passwd">',
+    ], JSON_THROW_ON_ERROR), $auth);
+    check(false, 'api blocks file urls');
+} catch (HttpException $e) {
+    check($e->error === 'remote_url_blocked', 'api blocks file urls');
+}
+$stored = $api->dispatch('PUT', '/v1/templates/note', json_encode([
+    'html' => '<p>Hello {{name}}</p>',
+    'fields' => ['name' => ['type' => 'string', 'required' => true]],
+], JSON_THROW_ON_ERROR), $auth);
+check(($stored->json['id'] ?? null) === 'note', 'stores a template on disk');
+$loaded = $api->dispatch('GET', '/v1/templates/note', null, $auth);
+check(($loaded->json['html'] ?? null) === '<p>Hello {{name}}</p>', 'reads a stored template');
+$listed = $api->dispatch('GET', '/v1/templates', null, $auth);
+$ids = array_column(is_array($listed->json['templates'] ?? null) ? $listed->json['templates'] : [], 'id');
+check(in_array('greeting', $ids, true) && in_array('note', $ids, true), 'lists seeds and stored templates');
+$deleted = $api->dispatch('DELETE', '/v1/templates/note', null, $auth);
+check(($deleted->json['deleted'] ?? false) === true && ($deleted->json['seed'] ?? true) === false, 'deletes a stored template');
+$pdf = $api->dispatch('POST', '/v1/pdf', json_encode([
+    'html' => '<h1>Letter</h1>',
+    'options' => ['paper' => 'letter', 'filename' => 'letter.pdf'],
+], JSON_THROW_ON_ERROR), $auth);
+check(is_string($pdf->pdf) && str_starts_with($pdf->pdf, '%PDF'), 'api render returns a pdf');
+check(($pdf->headers['X-Pdf-Pages'] ?? '') !== '', 'api render reports a page count');
+
+$limitedToken = 'limited-token';
+$limitedFile = $dataDir . '/limited-tokens.json';
+writeTokens($limitedFile, [
+    hash('sha256', $limitedToken) => [
+        'name' => 'Limited',
+        'owner' => 'fixture',
+        'scopes' => ['render'],
+        'rate_limit' => ['limit' => 1, 'window_seconds' => 60],
+    ],
+]);
+$limited = new PdfApi\Api(
+    new PdfApi\Tokens(new PdfApi\TokenFile($limitedFile)),
+    new PdfApi\RateLimiter($dataDir . '/rates'),
+    new PdfApi\TemplateLibrary($dataDir),
+);
+$limitedAuth = 'Bearer ' . $limitedToken;
+$limited->dispatch('POST', '/v1/expand', '{"html":"<p>One</p>"}', $limitedAuth);
+try {
+    $limited->dispatch('POST', '/v1/expand', '{"html":"<p>Two</p>"}', $limitedAuth);
+    check(false, 'rate limit rejects the next call');
+} catch (HttpException $e) {
+    check($e->status === 429 && $e->error === 'rate_limited', 'rate limit rejects the next call');
+}
+removeTree($dataDir);
 
 if ($failed > 0) {
     fwrite(STDERR, "{$failed} checks failed\n");

@@ -58,6 +58,13 @@ final class Seeds
         ];
     }
 
+    public static function exists(string $id): bool
+    {
+        self::assertId($id);
+
+        return is_file(Presets::templateDirectory() . '/' . $id . '/body.html');
+    }
+
     public static function assertId(string $id): void
     {
         if (preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $id) !== 1) {
