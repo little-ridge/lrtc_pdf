@@ -15,6 +15,10 @@ final class Api
         'keywords',
         'filename',
         'disposition',
+        'margin_left',
+        'margin_right',
+        'margin_top',
+        'margin_bottom',
     ];
 
     public function __construct(
@@ -257,6 +261,7 @@ final class Api
             self::meta($options, 'keywords'),
             [],
             true,
+            DocumentRequest::margins($options),
         );
         if ($expand) {
             return new ApiResponse(200, $request->expand());
