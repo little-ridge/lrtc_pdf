@@ -15,6 +15,10 @@ final class DocumentRequest
         'keywords',
         'filename',
         'disposition',
+        'margin_left',
+        'margin_right',
+        'margin_top',
+        'margin_bottom',
     ];
 
     /**
@@ -37,6 +41,7 @@ final class DocumentRequest
         public readonly string $keywords,
         public readonly array $allowedHosts,
         public readonly bool $allowAnyHost = false,
+        public readonly ?array $margins = null,
     ) {
     }
 
@@ -145,7 +150,48 @@ final class DocumentRequest
             self::meta($options, 'keywords'),
             $allowed,
             $allowAnyHost,
+            self::margins($options),
         );
+    }
+
+    /**
+     * Millimetre overrides for the paper preset. Absent means the preset
+     * margins. All four are required together so one side cannot move alone.
+     *
+     * @return array{margin_left: float, margin_right: float, margin_top: float, margin_bottom: float}|null
+     */
+    public static function margins(\stdClass $options): ?array
+    {
+        $keys = ['margin_left', 'margin_right', 'margin_top', 'margin_bottom'];
+        $present = [];
+        foreach ($keys as $key) {
+            if (!isset($options->{$key}) || $options->{$key} === null || $options->{$key} === '') {
+                continue;
+            }
+            $present[] = $key;
+        }
+        if ($present === []) {
+            return null;
+        }
+        if (count($present) !== 4) {
+            throw new HttpException(400, 'invalid_request', 'Set all four margins or none');
+        }
+        $out = [];
+        foreach ($keys as $key) {
+            $value = $options->{$key};
+            if (is_string($value) && is_numeric($value)) {
+                $value += 0;
+            }
+            if (!is_int($value) && !is_float($value)) {
+                throw new HttpException(400, 'invalid_request', 'options.' . $key . ' must be a number');
+            }
+            if ($value < 0 || $value > 100) {
+                throw new HttpException(400, 'invalid_request', 'options.' . $key . ' is out of range');
+            }
+            $out[$key] = (float) $value;
+        }
+
+        return $out;
     }
 
     /**

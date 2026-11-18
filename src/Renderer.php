@@ -16,7 +16,7 @@ final class Renderer
     {
         $expanded = $request->expand();
         try {
-            $mpdf = new Mpdf(self::config($request->paper, $request->defaultFont));
+            $mpdf = new Mpdf(self::config($request->paper, $request->defaultFont, $request->margins));
             if ($request->title !== '') {
                 $mpdf->SetTitle($request->title);
             }
@@ -56,9 +56,10 @@ final class Renderer
     }
 
     /**
+     * @param array{margin_left: float, margin_right: float, margin_top: float, margin_bottom: float}|null $margins
      * @return array<string, mixed>
      */
-    public static function config(string $paper, string $defaultFont): array
+    public static function config(string $paper, string $defaultFont, ?array $margins = null): array
     {
         Presets::assertFont($defaultFont);
         $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
@@ -71,12 +72,19 @@ final class Renderer
             ];
         }
 
-        return array_merge([
+        $config = array_merge([
             'orientation' => 'P',
             'tempDir' => sys_get_temp_dir(),
             'fontDir' => array_merge($fontDirs, [Presets::fontDirectory()]),
             'fontdata' => $fontData,
             'default_font' => $defaultFont,
         ], Presets::paper($paper));
+        if ($margins !== null) {
+            foreach (['margin_left', 'margin_right', 'margin_top', 'margin_bottom'] as $key) {
+                $config[$key] = $margins[$key];
+            }
+        }
+
+        return $config;
     }
 }

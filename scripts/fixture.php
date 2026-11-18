@@ -132,6 +132,29 @@ try {
 UrlGuard::assertSafe('<img src="data:image/png;base64,aaaa">', []);
 check(true, 'allows image data uris');
 
+$preset = DocumentRequest::fromArray(json_decode('{"html":"<p>x</p>","options":{"paper":"letter"}}'));
+check($preset->margins === null, 'omitted margins keep the preset');
+$overridden = Renderer::config('letter', 'dejavusans', [
+    'margin_left' => 25.58,
+    'margin_right' => 25.58,
+    'margin_top' => 25.58,
+    'margin_bottom' => 25.58,
+]);
+check($overridden['margin_left'] === 25.58 && $overridden['margin_top'] === 25.58, 'margin options replace the letter preset');
+check($overridden['format'] === 'Letter', 'margin options keep the paper size');
+try {
+    DocumentRequest::fromArray(json_decode('{"html":"<p>x</p>","options":{"margin_left":25.58}}'));
+    check(false, 'rejects a partial margin set');
+} catch (HttpException $e) {
+    check($e->status === 400, 'rejects a partial margin set');
+}
+try {
+    DocumentRequest::fromArray(json_decode('{"html":"<p>x</p>","options":{"margin_left":-1,"margin_right":0,"margin_top":0,"margin_bottom":0}}'));
+    check(false, 'rejects a negative margin');
+} catch (HttpException $e) {
+    check($e->status === 400, 'rejects a negative margin');
+}
+
 try {
     DocumentRequest::fromArray(json_decode('{"html":"<p>x</p>","options":{"tempDir":"/tmp"}}'));
     check(false, 'rejects unknown options');
@@ -181,6 +204,7 @@ try {
     check($e->status === 500 && $e->error === 'tokens_exposed', 'world-readable token file is refused');
 }
 chmod($tokenFile, 0600);
+clearstatcache(true, $tokenFile);
 $api = new PdfApi\Api(
     new PdfApi\Tokens(new PdfApi\TokenFile($tokenFile)),
     new PdfApi\RateLimiter($dataDir . '/rates'),
