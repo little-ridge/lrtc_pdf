@@ -45,7 +45,7 @@ final class Seeds
         $header = self::optionalFile($dir . '/header.html');
         $footer = self::optionalFile($dir . '/footer.html');
 
-        return [
+        $document = [
             'id' => $id,
             'html' => $body,
             'header_html' => $header,
@@ -56,6 +56,12 @@ final class Seeds
             'sample' => $meta['sample'] ?? null,
             'updated' => null,
         ];
+        $grid = FormGrid::fromDirectory($dir);
+        if ($grid !== null) {
+            $document['grid'] = $grid;
+        }
+
+        return $document;
     }
 
     public static function exists(string $id): bool

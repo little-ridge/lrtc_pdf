@@ -23,7 +23,7 @@ final class Fields
                 throw new HttpException(400, 'invalid_template', 'Field manifest is malformed');
             }
             $type = $spec['type'] ?? null;
-            if (!is_string($type) || !in_array($type, ['string', 'html', 'paragraphs', 'list'], true)) {
+            if (!is_string($type) || !in_array($type, ['string', 'html', 'paragraphs', 'list', 'signature'], true)) {
                 throw new HttpException(400, 'invalid_template', 'Field manifest is malformed', [
                     'field' => $name,
                 ]);
@@ -74,7 +74,7 @@ final class Fields
                 ]);
             }
             $type = $spec['type'] ?? null;
-            if (!is_string($type) || !in_array($type, ['string', 'html', 'paragraphs', 'list'], true)) {
+            if (!is_string($type) || !in_array($type, ['string', 'html', 'paragraphs', 'list', 'signature'], true)) {
                 throw new HttpException(400, 'invalid_template', 'Field manifest is malformed', [
                     'field' => $name,
                 ]);
@@ -99,6 +99,7 @@ final class Fields
             'string', 'html' => is_string($value) ? null : 'expected a string',
             'paragraphs' => self::paragraphError($value),
             'list' => is_array($value) && array_is_list($value) ? null : 'expected a list',
+            'signature' => self::signatureError($value),
             default => 'unknown field type',
         };
     }
@@ -120,6 +121,21 @@ final class Fields
         }
         if (isset($value['td_style']) && !is_string($value['td_style'])) {
             return 'td_style must be a string';
+        }
+
+        return null;
+    }
+
+    private static function signatureError(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return 'expected a string';
+        }
+        if ($value === '') {
+            return null;
+        }
+        if (FormGrid::image($value) === null) {
+            return 'expected an empty string or a PNG or JPEG data URI';
         }
 
         return null;

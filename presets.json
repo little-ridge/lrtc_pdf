@@ -9,7 +9,9 @@
     "freesans",
     "freeserif",
     "freemono",
-    "emoji"
+    "emoji",
+    "arial",
+    "signature"
   ],
   "papers": {
     "letter": {

@@ -42,6 +42,7 @@ final class DocumentRequest
         public readonly array $allowedHosts,
         public readonly bool $allowAnyHost = false,
         public readonly ?array $margins = null,
+        public readonly ?array $grid = null,
     ) {
     }
 

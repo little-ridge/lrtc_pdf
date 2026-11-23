@@ -1,0 +1,266 @@
+{
+  "paper": "letter",
+  "default_font": "arial",
+  "fields": {
+    "course_name": {
+      "type": "string",
+      "required": false
+    },
+    "start_date": {
+      "type": "string",
+      "required": false
+    },
+    "location": {
+      "type": "string",
+      "required": false
+    },
+    "course_code": {
+      "type": "string",
+      "required": false
+    },
+    "program_name": {
+      "type": "string",
+      "required": false
+    },
+    "student_id": {
+      "type": "string",
+      "required": false
+    },
+    "other_program": {
+      "type": "string",
+      "required": false
+    },
+    "last_name": {
+      "type": "string",
+      "required": false
+    },
+    "first_name": {
+      "type": "string",
+      "required": false
+    },
+    "middle_name": {
+      "type": "string",
+      "required": false
+    },
+    "preferred_name": {
+      "type": "string",
+      "required": false
+    },
+    "former_name": {
+      "type": "string",
+      "required": false
+    },
+    "gender_male": {
+      "type": "string",
+      "required": false
+    },
+    "gender_female": {
+      "type": "string",
+      "required": false
+    },
+    "gender_neutral": {
+      "type": "string",
+      "required": false
+    },
+    "gender_undeclared": {
+      "type": "string",
+      "required": false
+    },
+    "date_of_birth": {
+      "type": "string",
+      "required": false
+    },
+    "sin": {
+      "type": "string",
+      "required": false
+    },
+    "other_programs_yes": {
+      "type": "string",
+      "required": false
+    },
+    "other_programs_no": {
+      "type": "string",
+      "required": false
+    },
+    "citizen_yes": {
+      "type": "string",
+      "required": false
+    },
+    "resident_yes": {
+      "type": "string",
+      "required": false
+    },
+    "refugee_yes": {
+      "type": "string",
+      "required": false
+    },
+    "student_visa_yes": {
+      "type": "string",
+      "required": false
+    },
+    "employment_visa_yes": {
+      "type": "string",
+      "required": false
+    },
+    "citizenship_country": {
+      "type": "string",
+      "required": false
+    },
+    "street": {
+      "type": "string",
+      "required": false
+    },
+    "county": {
+      "type": "string",
+      "required": false
+    },
+    "city": {
+      "type": "string",
+      "required": false
+    },
+    "province": {
+      "type": "string",
+      "required": false
+    },
+    "address_country": {
+      "type": "string",
+      "required": false
+    },
+    "postal": {
+      "type": "string",
+      "required": false
+    },
+    "mail_street": {
+      "type": "string",
+      "required": false
+    },
+    "mail_county": {
+      "type": "string",
+      "required": false
+    },
+    "mail_city": {
+      "type": "string",
+      "required": false
+    },
+    "mail_province": {
+      "type": "string",
+      "required": false
+    },
+    "mail_country": {
+      "type": "string",
+      "required": false
+    },
+    "mail_postal": {
+      "type": "string",
+      "required": false
+    },
+    "telephone": {
+      "type": "string",
+      "required": false
+    },
+    "telephone_sec": {
+      "type": "string",
+      "required": false
+    },
+    "telephone_other": {
+      "type": "string",
+      "required": false
+    },
+    "email": {
+      "type": "string",
+      "required": false
+    },
+    "email_sec": {
+      "type": "string",
+      "required": false
+    },
+    "email_other": {
+      "type": "string",
+      "required": false
+    },
+    "emergency_name": {
+      "type": "string",
+      "required": false
+    },
+    "emergency_phone": {
+      "type": "string",
+      "required": false
+    },
+    "emergency_phone_sec": {
+      "type": "string",
+      "required": false
+    },
+    "emergency_phone_other": {
+      "type": "string",
+      "required": false
+    },
+    "sec_high_school": {
+      "type": "string",
+      "required": false
+    },
+    "sec_ged": {
+      "type": "string",
+      "required": false
+    },
+    "sec_adult": {
+      "type": "string",
+      "required": false
+    },
+    "sec_home": {
+      "type": "string",
+      "required": false
+    },
+    "sec_other": {
+      "type": "string",
+      "required": false
+    },
+    "high_school": {
+      "type": "string",
+      "required": false
+    },
+    "last_level": {
+      "type": "string",
+      "required": false
+    },
+    "date_completed": {
+      "type": "string",
+      "required": false
+    },
+    "post_years": {
+      "type": "string",
+      "required": false
+    },
+    "cert_certificate": {
+      "type": "string",
+      "required": false
+    },
+    "cert_diploma": {
+      "type": "string",
+      "required": false
+    },
+    "cert_bachelor": {
+      "type": "string",
+      "required": false
+    },
+    "cert_other": {
+      "type": "string",
+      "required": false
+    },
+    "institution": {
+      "type": "string",
+      "required": false
+    },
+    "ack": {
+      "type": "string",
+      "required": false
+    },
+    "signature": {
+      "type": "string",
+      "required": false
+    },
+    "signature_image": {
+      "type": "signature",
+      "required": false
+    }
+  }
+}
