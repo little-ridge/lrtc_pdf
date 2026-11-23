@@ -23,7 +23,7 @@ Run as your own user, the hash file is `~/.config/lrtc-pdf/tokens.json` and is r
 
 A valid token may fetch any `http` or `https` URL. `file:` URLs stay blocked. The default rate limit is 30 requests per 60 seconds.
 
-Saved templates and rate-limit counters go in `/var/lib/lrtc-pdf`, which is separate from the token file. The bundled `greeting` template is always available.
+Saved templates and rate-limit counters go in `/var/lib/lrtc-pdf`, which is separate from the token file. The bundled `greeting` and `nbcc-course-registration` (NBCC Course Registration) templates are always available.
 
 ## Run
 
