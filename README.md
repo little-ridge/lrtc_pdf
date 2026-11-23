@@ -23,7 +23,7 @@ Run as your own user, the hash file is `~/.config/lrtc-pdf/tokens.json` and is r
 
 A valid token may fetch any `http` or `https` URL. `file:` URLs stay blocked. The default rate limit is 30 requests per 60 seconds.
 
-Saved templates and rate-limit counters go in `/var/lib/lrtc-pdf`, which is separate from the token file. The bundled `greeting` and `nbcc-course-registration` (NBCC Course Registration) templates are always available.
+Saved templates and rate-limit counters go in `/var/lib/lrtc-pdf`, which is separate from the token file. The bundled `greeting` and `nbcc-course-registration` (NBCC Course Registration) templates are always available. A template with `places.json` is a fixed point grid: an optional `underlay.pdf` in that directory is imported, and values are drawn into the listed boxes. Caller margins do not move a grid. The `arial` family is Liberation Sans, and `signature` is Allura for a typed name. A `signature` field is an empty string or a PNG or JPEG data URI.
 
 ## Run
 

@@ -2,6 +2,7 @@
 /node_modules/
 /.wrangler/
 *.pdf
+!templates/**/underlay.pdf
 token.txt
 token.json
 tokens.json

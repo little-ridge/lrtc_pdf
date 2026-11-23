@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use PdfApi\DocumentRequest;
+use PdfApi\Fields;
+use PdfApi\FormGrid;
 use PdfApi\HttpException;
 use PdfApi\Paragraphs;
 use PdfApi\Presets;
@@ -181,6 +183,60 @@ check($rendered['pages'] >= 1, 'page count is present');
 check($rendered['bytes'] === strlen($rendered['pdf']), 'byte count matches');
 check(is_file(Presets::emojiPath()), 'emoji font file is present');
 check(isset($letter['fontdata']['emoji']), 'emoji family is registered');
+check(isset($letter['fontdata']['arial']), 'arial family is registered');
+check(isset($letter['fontdata']['signature']), 'signature family is registered');
+
+$nbcc = Seeds::document('nbcc-course-registration');
+check(is_array($nbcc['grid'] ?? null) && is_string($nbcc['grid']['underlay'] ?? null), 'nbcc grid imports the college form');
+$gridDir = sys_get_temp_dir() . '/lrtc-pdf-grid-' . bin2hex(random_bytes(4));
+mkdir($gridDir);
+file_put_contents($gridDir . '/places.json', json_encode([
+    'underlay' => '../secret.pdf',
+    'width' => 612,
+    'height' => 792,
+    'pages' => [['items' => []]],
+]));
+try {
+    FormGrid::fromDirectory($gridDir);
+    check(false, 'grid rejects an underlay outside the template');
+} catch (HttpException $e) {
+    check($e->error === 'invalid_template', 'grid rejects an underlay outside the template');
+}
+$png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+check(Fields::typeError('signature', '') === null, 'empty signature is allowed');
+check(Fields::typeError('signature', $png) === null, 'png signature is allowed');
+check(Fields::typeError('signature', 'Ada') !== null, 'typed name is not a signature image');
+$gridRequest = new DocumentRequest(
+    $nbcc['html'],
+    null,
+    null,
+    [
+        'last_name' => 'MacDonald',
+        'gender_female' => '●',
+        'signature' => 'Ada MacDonald',
+        'ack' => 'X',
+        'sin' => '',
+    ],
+    is_array($nbcc['fields']) ? $nbcc['fields'] : null,
+    true,
+    'letter',
+    'arial',
+    'NBCC Course Registration',
+    '',
+    '',
+    '',
+    [],
+    true,
+    ['margin_left' => 25.6, 'margin_right' => 25.6, 'margin_top' => 12.0, 'margin_bottom' => 12.0],
+    $nbcc['grid'],
+);
+$gridPdf = Renderer::render($gridRequest);
+check(str_starts_with($gridPdf['pdf'], '%PDF') && $gridPdf['pages'] === 2, 'nbcc grid renders both pages');
+$overlay = sys_get_temp_dir() . '/nbcc-grid-fixture.pdf';
+file_put_contents($overlay, $gridPdf['pdf']);
+$text = shell_exec('pdftotext -layout ' . escapeshellarg($overlay) . ' -');
+check(is_string($text) && str_contains($text, 'MacDonald') && str_contains($text, 'Student Application/Registration Form'), 'overlay keeps the form and the last name');
+check(is_string($text) && !str_contains($text, '999-999-999'), 'an uncollected SIN is not invented');
 
 $dataDir = sys_get_temp_dir() . '/lrtc-pdf-fixture-' . bin2hex(random_bytes(4));
 $token = 'test-token';

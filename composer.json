@@ -10,7 +10,8 @@
     "ext-mbstring": "*",
     "ext-zlib": "*",
     "mpdf/mpdf": "8.2.6",
-    "mustache/mustache": "^2.14"
+    "mustache/mustache": "^2.14",
+    "setasign/fpdi": "^2.6"
   },
   "autoload": {
     "psr-4": {

@@ -1,6 +1,6 @@
 {
   "paper": "letter",
-  "default_font": "freesans",
+  "default_font": "arial",
   "fields": {
     "course_name": {
       "type": "string",
@@ -256,6 +256,10 @@
     },
     "signature": {
       "type": "string",
+      "required": false
+    },
+    "signature_image": {
+      "type": "signature",
       "required": false
     }
   }

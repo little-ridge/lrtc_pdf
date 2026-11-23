@@ -185,6 +185,7 @@ final class Api
         $paper = 'letter';
         $font = 'dejavusans';
         $fields = null;
+        $grid = null;
         if ($hasTemplate) {
             Seeds::assertId($body->template);
             $document = $this->templates->load($token->owner, $body->template);
@@ -200,6 +201,7 @@ final class Api
             $paper = $document['paper'];
             $font = $document['default_font'];
             $fields = is_array($document['fields']) ? $document['fields'] : null;
+            $grid = isset($document['grid']) && is_array($document['grid']) ? $document['grid'] : null;
         }
         if (property_exists($body, 'header_html')) {
             $header = self::overrideString($body->header_html, 'header_html');
@@ -262,6 +264,7 @@ final class Api
             [],
             true,
             DocumentRequest::margins($options),
+            $grid,
         );
         if ($expand) {
             return new ApiResponse(200, $request->expand());

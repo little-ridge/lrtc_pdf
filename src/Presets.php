@@ -97,6 +97,12 @@ final class Presets
         if ($font === 'emoji' && !is_file(self::emojiPath())) {
             throw new HttpException(400, 'invalid_font', 'The emoji font is not installed');
         }
+        if ($font === 'arial' && !is_file(self::fontDirectory() . '/LiberationSans-Regular.ttf')) {
+            throw new HttpException(400, 'invalid_font', 'The Arial-metric font is not installed');
+        }
+        if ($font === 'signature' && !is_file(self::fontDirectory() . '/Allura-Regular.ttf')) {
+            throw new HttpException(400, 'invalid_font', 'The signature font is not installed');
+        }
     }
 
     public static function emojiPath(): string

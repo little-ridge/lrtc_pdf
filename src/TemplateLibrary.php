@@ -196,7 +196,7 @@ final class TemplateLibrary
             }
         }
 
-        return [
+        $document = [
             'id' => $id,
             'html' => $html,
             'header_html' => self::optionalFile($dir . '/header.html'),
@@ -207,6 +207,12 @@ final class TemplateLibrary
             'sample' => $sample,
             'updated' => $updated,
         ];
+        $grid = FormGrid::fromDirectory($dir);
+        if ($grid !== null) {
+            $document['grid'] = $grid;
+        }
+
+        return $document;
     }
 
     /**

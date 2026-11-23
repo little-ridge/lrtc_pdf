@@ -1,0 +1,6 @@
+Liberation Sans (registered here as the arial family) is metric-compatible with Arial.
+Copyright 2012 Red Hat, Inc. Licensed under the SIL Open Font License, Version 1.1.
+
+Allura (registered here as the signature family) is used when a signature is a typed name.
+Copyright 2010 The Allura Project Authors (https://github.com/googlefonts/allura).
+Licensed under the SIL Open Font License, Version 1.1.
