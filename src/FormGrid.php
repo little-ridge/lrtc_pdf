@@ -131,7 +131,7 @@ final class FormGrid
         if (!is_string($key) || preg_match('/^[A-Za-z0-9_]{1,64}$/', $key) !== 1) {
             throw new HttpException(500, 'invalid_template', 'Field grid is malformed');
         }
-        if (!is_string($kind) || !in_array($kind, ['text', 'mark', 'signature'], true)) {
+        if (!is_string($kind) || !in_array($kind, ['text', 'mark', 'signature', 'blank'], true)) {
             throw new HttpException(500, 'invalid_template', 'Field grid is malformed');
         }
         $x = self::number($item['x'] ?? null);
