@@ -133,6 +133,11 @@ final class Renderer
 
             return;
         }
+        if ($kind === 'blank') {
+            self::paintBlank($mpdf, $pageHeight, $item);
+
+            return;
+        }
         if ($kind === 'text') {
             $value = self::textValue($data, $item);
             if ($value === '') {
@@ -140,6 +145,16 @@ final class Renderer
             }
             self::paintText($mpdf, $pageHeight, $item, $value, (string) ($item['font'] ?? 'arial'), (float) ($item['size'] ?? 10));
         }
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private static function paintBlank(Mpdf $mpdf, float $pageHeight, array $item): void
+    {
+        [$x, $y, $w, $h] = self::box($pageHeight, $item);
+        $mpdf->SetFillColor(255);
+        $mpdf->Rect($x, $y, $w, $h, 'F');
     }
 
     /**

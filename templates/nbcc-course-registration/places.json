@@ -146,13 +146,29 @@
           "h": 17.991
         },
         {
+          "key": "cover_cell_hint",
+          "kind": "blank",
+          "x": 78,
+          "y": 175.2,
+          "w": 72,
+          "h": 9.6
+        },
+        {
+          "key": "cover_email_labels",
+          "kind": "blank",
+          "x": 176,
+          "y": 153,
+          "w": 290,
+          "h": 12
+        },
+        {
           "key": "email",
           "kind": "text",
           "font": "arial",
           "size": 10,
-          "x": 215.225,
+          "x": 150,
           "y": 156.305,
-          "w": 89.935,
+          "w": 388.5,
           "h": 17.99
         },
         {
@@ -419,13 +435,14 @@
           "style": "square"
         },
         {
-          "key": "signature_image",
-          "fallback": "signature",
-          "kind": "signature",
-          "x": 146.0,
-          "y": 64.0,
-          "w": 370.0,
-          "h": 38.0
+          "key": "signature",
+          "kind": "text",
+          "font": "arial",
+          "size": 11,
+          "x": 81.651,
+          "y": 84,
+          "w": 360,
+          "h": 16
         }
       ]
     }
